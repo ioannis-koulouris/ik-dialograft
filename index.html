@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta property="og:title" content="Dialograft"><meta property="og:description" content="Software entwickelt sich im Gespräch: Rechnungs-SaaS per Chat, mit lokalem Coding-Agenten und menschlichem Review."><meta name="description" content="Dialograft – Software entwickelt sich im Gespräch. Produkt- und Engineering-Demo von Jannis Koulouris.">
+<title>Dialograft</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a case file. Narrow reading column, a timestamped ledger as the spine, evidence plates set wide. */
+:root {
+  --paper: #f3f5f4;
+  --sheet: #ffffff;
+  --ink: #17201d;
+  --muted: #5a6762;
+  --rule: #d5ddd9;
+  --accent: #0f7a5c;      /* ledger green: "booked", "passed" */
+  --accent-soft: #e2f1eb;
+  --stop: #b4472b;        /* guard stopped it */
+  --stop-soft: #f8e7e1;
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #111715; --sheet: #182120; --ink: #e6ece9; --muted: #9aaaa4; --rule: #2b3734;
+  --accent: #4cc39b; --accent-soft: #17332a; --stop: #e8866a; --stop-soft: #3a221b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #111715; --sheet: #182120; --ink: #e6ece9; --muted: #9aaaa4; --rule: #2b3734;
+  --accent: #4cc39b; --accent-soft: #17332a; --stop: #e8866a; --stop-soft: #3a221b; color-scheme: dark }
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font: 16px/1.6 var(--body); }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 56px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 72px; }
+.col { max-width: 680px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2.6rem, 6vw, 4.4rem); line-height: 1.02; }
+h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); line-height: 1.15; }
+h3 { font-size: 1.15rem; font-weight: 500; }
+p { margin: 0; }
+.eyebrow { font: 500 0.75rem/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.lede { font-size: 1.2rem; color: var(--muted); max-width: 62ch; }
+section { display: grid; gap: 24px; }
+.stack { display: grid; gap: 16px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Hero */
+.hero { display: grid; gap: 28px; }
+.hero .meta { display: flex; flex-wrap: wrap; gap: 8px 24px; font: 0.85rem var(--mono); color: var(--muted); }
+.quote { border-left: 3px solid var(--accent); padding-left: 18px; font-family: var(--display); font-size: 1.25rem; font-weight: 500; max-width: 60ch; }
+
+/* Facts */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+.fact { background: var(--sheet); padding: 18px 20px; display: grid; gap: 4px; align-content: start; }
+.fact b { font: 600 1.6rem/1.1 var(--mono); font-variant-numeric: tabular-nums; }
+.fact span { color: var(--muted); font-size: 0.9rem; }
+
+/* Ledger */
+.ledger { border-top: 1px solid var(--rule); }
+.row { display: grid; grid-template-columns: 76px 1fr; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--rule); }
+.row time { font: 500 0.9rem var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); padding-top: 2px; }
+.row .what { display: grid; gap: 4px; min-width: 0; }
+.row .what p { color: var(--muted); font-size: 0.95rem; }
+.row code, p code, li code { font: 0.86em var(--mono); background: var(--accent-soft); padding: 1px 5px; border-radius: 3px; overflow-wrap: anywhere; }
+.row.stop time { color: var(--stop); }
+.row.stop code { background: var(--stop-soft); }
+.tag { justify-self: start; font: 500 0.7rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 7px; border-radius: 3px; background: var(--accent-soft); color: var(--accent); }
+.row.stop .tag { background: var(--stop-soft); color: var(--stop); }
+.who { font: 0.78rem var(--mono); color: var(--muted); }
+
+/* Evidence plates */
+figure { margin: 0; display: grid; gap: 10px; }
+figure img { width: 100%; height: auto; display: block; border: 1px solid var(--rule); border-radius: 4px; }
+figcaption { font-size: 0.88rem; color: var(--muted); }
+.plates { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+
+/* Guards */
+.guards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+.guard { background: var(--sheet); border: 1px solid var(--rule); padding: 18px 20px; display: grid; gap: 8px; align-content: start; }
+.guard .caught { font: 500 0.78rem var(--mono); color: var(--stop); }
+.guard p { font-size: 0.95rem; color: var(--muted); }
+
+/* Architecture */
+.diagram { background: var(--sheet); border: 1px solid var(--rule); padding: 20px; overflow-x: auto; }
+.diagram svg { display: block; min-width: 760px; width: 100%; height: auto; }
+.diagram text { font-family: var(--mono); font-size: 13px; fill: var(--ink); }
+.diagram .sub { fill: var(--muted); font-size: 11px; }
+.diagram .box { fill: var(--paper); stroke: var(--rule); stroke-width: 1.5; }
+.diagram .boxa { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.diagram .boxs { fill: var(--stop-soft); stroke: var(--stop); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.diagram .ln { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.diagram .lbl { fill: var(--muted); font-size: 11px; }
+.diagram .head { fill: var(--muted); }
+
+ul.plain { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; }
+ul.plain li::marker { color: var(--accent); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; }
+.two > * { min-width: 0; }
+.cta { background: var(--ink); color: var(--paper); padding: 32px; display: grid; gap: 12px; }
+.cta h2 { color: var(--paper); }
+.cta p { color: color-mix(in srgb, var(--paper) 78%, transparent); max-width: 60ch; }
+.foot { font-size: 0.82rem; color: var(--muted); }
+@media (max-width: 520px) { .row { grid-template-columns: 1fr; gap: 6px; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+</head><body>
+<main class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Fallakte · Produkt- und Engineering-Demo</div>
+    <h1>Dialograft</h1>
+    <p class="quote">Software entwickelt sich im Gespräch.</p>
+    <p class="lede">Eine kleine Rechnungs-SaaS, die man per Chat bedient. Fehlt eine Funktion, nimmt das System den Wunsch auf, klärt ihn, lässt ihn bewerten, macht ein Angebot und lässt ihn von einem lokalen Coding-Agenten umsetzen. Review, Merge und Deployment bleiben menschliche Entscheidungen.</p>
+    <div class="meta"><span>Jannis Koulouris</span><span>Stand 31.10.2026</span><span>Läuft vollständig lokal auf einem Mac</span><span><a href="https://github.com/ioannis-koulouris/ik-dialograft">Quellcode auf GitHub</a></span></div>
+  </header>
+
+  <section aria-labelledby="video-h">
+    <div class="col stack">
+      <div class="eyebrow">Video · 5 Minuten</div>
+      <h2 id="video-h">Ein kompletter Lauf: CSV-Export für den Steuerberater</h2>
+      <p class="lede">Echte Aufnahme vom 31.10.2026. Die Kundennachrichten kommen aus einem Skript; Antworten, Bewertung, Agentenläufe, Reviews und Deployment sind echt. Mit einer Schutzregel, die greift, und einem Review, das Änderungen verlangt. 1,4-fach beschleunigt, Wartezeiten geschnitten.</p>
+    </div>
+    <figure><video controls preload="metadata" playsinline width="1600" height="960" style="width:100%;height:auto;border:1px solid var(--rule);border-radius:4px;background:#000" src="media/dialograft-demo.mp4"></video>
+    <figcaption>Terminal-Aufnahme: Claude Code (headless) über MCP, Worker, Runner, GitHub und Deployment unter OrbStack.</figcaption></figure>
+  </section>
+
+  <section aria-labelledby="facts-h">
+    <h2 id="facts-h" class="eyebrow" style="font-family:var(--mono);font-size:.75rem">Am 31.10.2026 live gemessen</h2>
+    <div class="facts">
+      <div class="fact"><b>49 min</b><span>vom Funktionswunsch im Chat bis zur bereitgestellten Mahnstufe 2</span></div>
+      <div class="fact"><b>2</b><span>Testmails im ersten Prüflauf, 0 im zweiten (kein Doppelversand)</span></div>
+      <div class="fact"><b>600–1.440 €</b><span>unverbindliches Angebot, deterministisch aus 6–12 h berechnet</span></div>
+      <div class="fact"><b>7</b><span>Plattformfehler, die erst im Live-Betrieb auftraten und behoben wurden</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="ledger-h">
+    <div class="col stack">
+      <div class="eyebrow">Ablauf FR-0001</div>
+      <h2 id="ledger-h">Vom Wunsch zur Mahnung, mit Zeitstempeln</h2>
+      <p class="lede">Ein echter Lauf. Die Zeiten stammen aus dem Verlauf der Anfrage in der Datenbank; die Pausen sind Teil des Ergebnisses.</p>
+    </div>
+    <div class="ledger">
+      <div class="row"><time>13:28</time><div class="what"><span class="tag">Chat · MCP</span><h3>Lücke festgestellt, Anfrage angelegt</h3><p>Der Client prüft zuerst den Funktionskatalog. Kein Werkzeug für eine zweite Mahnung, also eine echte Produktlücke. Bereits genannte Angaben („nach 30 Tagen“) werden übernommen, nicht erneut gefragt.</p></div></div>
+      <div class="row"><time>13:28</time><div class="what"><span class="tag">Kunde</span><h3>Umfang v2 bestätigt</h3><p>Ziel, Auslöser, Verhalten, Ausnahmen, Annahmen und prüfbare Akzeptanzkriterien. Vorschläge zählen erst nach Bestätigung.</p></div></div>
+      <div class="row"><time>13:30</time><div class="what"><span class="tag">Worker · Ollama</span><h3>Ticket, Bewertung, Angebot v1</h3><p>GitHub-Issue mit Label <code>auto-implement</code>. Das lokale Modell liest einen fixierten Commit; jeder Codebeleg muss wörtlich in der genannten Datei stehen.</p></div></div>
+      <div class="row stop"><time>13:36</time><div class="what"><span class="tag">Pausiert</span><h3>Verbindung zum Runner nach 300 s verloren</h3><p>Der Worker meldete die Übergabe an das Team, statt etwas zu behaupten. Ursache: Header-Timeout von <code>fetch</code>. Behoben durch ein asynchrones Runner-Protokoll.</p></div></div>
+      <div class="row stop"><time>13:38</time><div class="what"><span class="tag">Abgelehnt</span><h3>Neue Bewertung mit erfundenen Belegen</h3><p>Das Modell lieferte 30 sich wiederholende Belege, einige der falschen Datei zugeordnet. Die Prüfung verwarf sie; Ergebnis <code>needs-human</code>. Prompt und Schema wurden verschärft.</p></div></div>
+      <div class="row"><time>13:49</time><div class="what"><span class="tag">Kunde</span><h3>Angebot v2 angenommen, Auftrag AU-0002</h3><p>Neu bewertet am geänderten Commit. Das ältere Angebot ist ungültig; nur das aktuelle, konkrete Angebot erzeugt einen Auftrag.</p></div></div>
+      <div class="row"><time>13:54</time><div class="what"><span class="tag">Runner · Qwen Code</span><h3>Draft-PR #3</h3><p>Kurzlebiger Container, Typecheck, Tests und Build vorher und nachher, Pfadregeln geprüft. 7 Dateien, +426 Zeilen, davon ein neuer Test.</p></div></div>
+      <div class="row"><time>14:17</time><div class="what"><span class="tag">Mensch</span><h3>Review und Merge</h3><p>Jannis prüft und merged ausdrücklich. Kein unbeaufsichtigter Merge.</p></div></div>
+      <div class="row"><time>14:18</time><div class="what"><span class="tag">Operator</span><h3>Freigegebener Commit bereitgestellt</h3><p>Nur der gemergte Commit darf als bereitgestellt markiert werden. Danach Prüflauf zum Stichtag 30.10.2026.</p></div></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="proof-h">
+    <div class="col stack">
+      <div class="eyebrow">Beleg</div>
+      <h2 id="proof-h">Die Mahnung kommt im Testpostfach an</h2>
+      <p class="lede">Mailpit als lokales Testpostfach. Der Adapter akzeptiert nur Adressen unter der reservierten Domain <code>.invalid</code>; reale Empfänger sind ausgeschlossen.</p>
+    </div>
+    <div class="plates">
+      <figure><img src="media/mailpit-inbox.png" alt="Mailpit-Posteingang mit zwei Mails „2. Mahnung“ für R-0002 und R-0004 und vier Zahlungserinnerungen der ersten Stufe" width="1400" height="820"><figcaption>Posteingang: zwei Mahnungen der Stufe 2 über den vier Erinnerungen der Stufe 1. R-0003 und R-0006 sind noch keine 30 Tage überfällig.</figcaption></figure>
+      <figure><img src="media/mailpit-message.png" alt="Mailpit-Ansicht der Mahnung zu Rechnung R-0002: seit 45 Tagen überfällig, offener Betrag 535,50 Euro" width="1400" height="820"><figcaption>Einzelne Mahnung: Rechnung R-0002, 45 Tage überfällig, offener Restbetrag 535,50 €.</figcaption></figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="guard-h">
+    <div class="col stack">
+      <div class="eyebrow">Schutzregeln im Einsatz</div>
+      <h2 id="guard-h">Was das System selbst gestoppt hat</h2>
+      <p class="lede">Ein Agent, der Code schreibt, braucht Grenzen, die nicht von seiner Selbsteinschätzung abhängen. Alle Fälle hier sind live aufgetreten.</p>
+    </div>
+    <div class="guards">
+      <div class="guard"><span class="caught">gestoppt · Pfadregel</span><h3>Änderung an geschützten Dateien</h3><p>Der Agent änderte den Datenspeicher, einen bestehenden Test und später einen Test-Helfer, obwohl die Aufgabe es untersagte. Der Runner verwarf jeweils das ganze Ergebnis; kein PR.</p></div>
+      <div class="guard"><span class="caught">gestoppt · Review</span><h3>Grüne Tests, falsches Verhalten</h3><p>Ein Lauf bestand alle Prüfungen, hätte aber an den falschen Mailserver gesendet und ein Zahlungsziel in der Vergangenheit genannt. Bei FR-0002 fand das Review fehlerhafte Grammatik, eine gestrichene Zahlungsaufforderung und doppelten Code. Jede Ablehnung startet eine neue Agentenrunde mit allen Review-Notizen.</p></div>
+      <div class="guard"><span class="caught">gestoppt · Belegprüfung</span><h3>Erfundene Codezitate</h3><p>Bewertungen mit paraphrasierten oder falsch zugeordneten Zitaten führen nie zu einem Angebot, sondern zur menschlichen Prüfung.</p></div>
+      <div class="guard"><span class="caught">gestoppt · Versionen</span><h3>Veraltete Angebote</h3><p>Ändert sich der Umfang oder die Codebasis, wird das offene Angebot ungültig. Angenommen werden kann nur die aktuelle Version.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="arch-h">
+    <div class="col stack">
+      <div class="eyebrow">Architektur</div>
+      <h2 id="arch-h">Drei Tokens, ein Werkzeugkatalog, ein isolierter Agent</h2>
+    </div>
+    <div class="diagram" role="img" aria-label="Architektur: Claude Code spricht per MCP mit dem MCP-Dienst, dieser mit der API, die MySQL nutzt. Der Worker verarbeitet Jobs, spricht mit GitHub, Ollama und dem nativen Runner, der einen kurzlebigen Docker-Container mit Qwen Code startet. Mailpit empfängt Testmails.">
+      <svg viewBox="0 0 980 360" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="head"/></marker></defs>
+        <text x="20" y="22" class="sub">Kubernetes (OrbStack) · Namespace dialograft</text>
+        <rect x="10" y="32" width="640" height="200" rx="6" class="box" style="fill:none"/>
+        <rect x="-150" y="70" width="0" height="0"/>
+        <rect x="30" y="64" width="130" height="56" rx="4" class="box"/><text x="95" y="88" text-anchor="middle">mcp</text><text x="95" y="106" text-anchor="middle" class="sub">Streamable HTTP</text>
+        <rect x="230" y="64" width="150" height="56" rx="4" class="boxa"/><text x="305" y="88" text-anchor="middle">api</text><text x="305" y="106" text-anchor="middle" class="sub">Fastify · Zod</text>
+        <rect x="460" y="64" width="160" height="56" rx="4" class="box"/><text x="540" y="88" text-anchor="middle">MySQL</text><text x="540" y="106" text-anchor="middle" class="sub">Aggregate · Jobs · Audit</text>
+        <rect x="230" y="160" width="150" height="56" rx="4" class="box"/><text x="305" y="184" text-anchor="middle">worker</text><text x="305" y="202" text-anchor="middle" class="sub">Bewertung · Umsetzung</text>
+        <rect x="460" y="160" width="160" height="56" rx="4" class="box"/><text x="540" y="184" text-anchor="middle">Mailpit</text><text x="540" y="202" text-anchor="middle" class="sub">nur .invalid</text>
+        <path d="M160 92H226" class="ln" marker-end="url(#ar)"/><text x="193" y="84" text-anchor="middle" class="lbl">Token B</text>
+        <path d="M380 92H456" class="ln" marker-end="url(#ar)"/>
+        <path d="M380 188H456" class="ln" marker-end="url(#ar)"/>
+        <path d="M540 120V156" class="ln" style="stroke-dasharray:3 3"/><text x="548" y="142" class="lbl">Jobs</text>
+        <path d="M305 120V156" class="ln" style="stroke-dasharray:3 3"/>
+        <rect x="30" y="270" width="150" height="56" rx="4" class="boxa"/><text x="105" y="294" text-anchor="middle">Claude Code</text><text x="105" y="312" text-anchor="middle" class="sub">Chat-Client</text>
+        <path d="M95 266V124" class="ln" marker-end="url(#ar)"/><text x="102" y="250" class="lbl">Token A</text>
+        <text x="700" y="22" class="sub">nativ auf dem Mac</text>
+        <rect x="690" y="64" width="270" height="56" rx="4" class="box"/><text x="825" y="88" text-anchor="middle">Ollama</text><text x="825" y="106" text-anchor="middle" class="sub">qwen3-coder-next · lokal</text>
+        <rect x="690" y="160" width="270" height="56" rx="4" class="box"/><text x="825" y="184" text-anchor="middle">Runner-Controller</text><text x="825" y="202" text-anchor="middle" class="sub">127.0.0.1 · Token D</text>
+        <rect x="690" y="262" width="270" height="72" rx="4" class="boxs"/><text x="825" y="286" text-anchor="middle">Coding-Container</text><text x="825" y="304" text-anchor="middle" class="sub">Qwen Code · kein Docker-Socket</text><text x="825" y="320" text-anchor="middle" class="sub">keine DB/GitHub/Kube · Checks ohne Netz</text>
+        <path d="M380 176C520 150 600 120 686 100" class="ln" marker-end="url(#ar)"/>
+        <path d="M620 188H686" class="ln" marker-end="url(#ar)" style="opacity:0"/>
+        <path d="M380 200C520 236 620 220 686 196" class="ln" marker-end="url(#ar)"/><text x="560" y="246" class="lbl">Läufe (202 + Polling)</text>
+        <path d="M825 216V258" class="ln" marker-end="url(#ar)"/>
+        <path d="M760 262C740 200 740 150 760 124" class="ln" marker-end="url(#ar)" style="stroke-dasharray:3 3"/>
+        <rect x="230" y="270" width="150" height="56" rx="4" class="box"/><text x="305" y="294" text-anchor="middle">GitHub</text><text x="305" y="312" text-anchor="middle" class="sub">Issue · Draft-PR</text>
+        <path d="M305 220V266" class="ln" marker-end="url(#ar)"/>
+        <rect x="460" y="270" width="160" height="56" rx="4" class="box"/><text x="540" y="294" text-anchor="middle">Operator</text><text x="540" y="312" text-anchor="middle" class="sub">Token C · Freigaben</text>
+        <path d="M456 290C420 250 400 130 384 116" class="ln" marker-end="url(#ar)"/>
+      </svg>
+    </div>
+    <div class="two">
+      <div class="stack"><h3>Entscheidungen</h3><ul class="plain">
+        <li>Zod-Schemas sind die einzige Quelle: API-Validierung, OpenAPI und MCP-Katalog werden daraus erzeugt.</li>
+        <li>MySQL mit expliziter Store-Abstraktion; Jobs, Mitteilungen und Audit entstehen in derselben Transaktion wie die fachliche Änderung.</li>
+        <li>Preise sind deterministisch: Arbeitspakete × Stundensatz, Risikoaufschlag auf die Obergrenze. Das Modell erfindet keine Summe.</li>
+        <li>Getrennte Entscheidungen: Prüfung, Angebotsannahme, Merge, Deployment.</li>
+      </ul></div>
+      <div class="stack"><h3>Stack</h3><ul class="plain">
+        <li>TypeScript, Node.js, Fastify, Zod, MCP SDK, mysql2, PDFKit, ExcelJS</li>
+        <li>Kubernetes unter OrbStack, Docker, Mailpit</li>
+        <li>Ollama mit <code>qwen3-coder-next</code>, Qwen Code im Container</li>
+        <li>Vitest (52 Tests), MySQL-Integrationstest in CI, GitHub Actions</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="limits-h">
+    <div class="col stack">
+      <div class="eyebrow">Grenzen</div>
+      <h2 id="limits-h">Was diese Demo nicht behauptet</h2>
+      <ul class="plain">
+        <li>Keine produktive Buchhaltung, keine echten Zahlungen, keine realen Empfänger. Alle Dokumente sind Demo-Daten.</li>
+        <li>Der Agentencontainer ist eingeschränkt, aber sein Netzwerkzugang ist nicht vollständig isoliert. Gedacht für ein kontrolliertes Repository.</li>
+        <li>Grüne Tests beweisen keine Korrektheit. Deshalb bleibt das menschliche Review Pflicht, und es hat im Live-Betrieb echte Fehler gefunden.</li>
+        <li>Agentencode braucht oft mehrere Runden: Für einheitliche Mahntexte (FR-0002) lehnte das Review drei Pull Requests ab, bevor der vierte bestand.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="cta" aria-labelledby="cta-h">
+    <div class="eyebrow" style="color:var(--paper);opacity:.7">Live-Vorführung</div>
+    <h2 id="cta-h">Den ganzen Ablauf live sehen</h2>
+    <p>Der Quellcode ist offen auf <a href="https://github.com/ioannis-koulouris/ik-dialograft">GitHub</a> (MIT). In einer persönlichen Vorführung auf meinem Mac zeige ich den kompletten Weg: Chat, Klärung, Bewertung, Angebot, Agentenlauf, Review und Deployment, mit einer Funktion, die Sie vorschlagen.</p>
+    <p>Schreiben Sie mir für einen Termin am einfachsten über LinkedIn, wo Sie diese Seite gefunden haben. Wenn Sie über einen anderen Weg hierher gekommen sind, erreichen Sie mich über GitHub: <a href="https://github.com/ioannis-koulouris">github.com/ioannis-koulouris</a>.</p>
+  </section>
+
+  <p class="foot">Dialograft ist ein Demonstrationsprojekt von Jannis Koulouris. Alle Kunden, Rechnungen und Adressen sind erfunden.</p>
+</main>
+</body></html>
