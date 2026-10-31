@@ -1,0 +1,18 @@
+# Explicit migration + seed. Applied manually by scripts/migrate-seed.sh; seeding never resets existing data.
+apiVersion: batch/v1
+kind: Job
+metadata: { name: migrate-seed, namespace: dialograft }
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext: { runAsNonRoot: true, runAsUser: 1000 }
+      containers:
+        - name: migrate
+          image: dialograft:local
+          imagePullPolicy: Never
+          command: [sh, -c, 'node dist/src/cli/migrate.js && node dist/src/cli/seed.js']
+          envFrom: [{ configMapRef: { name: dialograft-config } }, { secretRef: { name: dialograft-secrets } }]
+          resources: { limits: { cpu: 500m, memory: 256Mi } }

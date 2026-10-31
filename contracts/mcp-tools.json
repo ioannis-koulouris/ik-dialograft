@@ -1,0 +1,884 @@
+[
+  {
+    "name": "list_capabilities",
+    "description": "List the tools that currently exist and known product gaps. Use before telling the user a function is missing.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_customer",
+    "description": "Create a customer. Email must be a demo .invalid address.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 200
+        },
+        "contactName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 200
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+        },
+        "idempotencyKey": {
+          "description": "Optional key; repeating a call with the same key returns the first result.",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "name",
+        "contactName",
+        "email"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "search_customers",
+    "description": "Search customers by name, contact, number or email.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_customer_contact",
+    "description": "Change contact person and/or billing email of a customer. Ambiguous references return candidates.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "customer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "contactName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 200
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+        },
+        "idempotencyKey": {
+          "description": "Optional key; repeating a call with the same key returns the first result.",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "customer"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_quote",
+    "description": "Create a business quote with lines; net, tax and gross are computed in cents.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "customer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "lines": {
+          "minItems": 1,
+          "maxItems": 50,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "quantity": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 10000
+              },
+              "unitPriceCents": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000
+              },
+              "taxRatePct": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "const": 0
+                  },
+                  {
+                    "type": "number",
+                    "const": 7
+                  },
+                  {
+                    "type": "number",
+                    "const": 19
+                  }
+                ]
+              }
+            },
+            "required": [
+              "description",
+              "quantity",
+              "unitPriceCents",
+              "taxRatePct"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "idempotencyKey": {
+          "description": "Optional key; repeating a call with the same key returns the first result.",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "customer",
+        "lines"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_quote",
+    "description": "Get a business quote by id or number.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "quote": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "quote"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "accept_quote",
+    "description": "Record the customer's confirmed acceptance of a business quote.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "quote": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true,
+          "description": "Must be true and only set after the user explicitly confirmed this action."
+        },
+        "idempotencyKey": {
+          "description": "Optional key; repeating a call with the same key returns the first result.",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "quote",
+        "confirm"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_invoice_from_quote",
+    "description": "Create a test invoice draft from an accepted quote.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "quote": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "paymentTermDays": {
+          "default": 14,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 120
+        },
+        "idempotencyKey": {
+          "description": "Optional key; repeating a call with the same key returns the first result.",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "quote"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_invoice",
+    "description": "Show an invoice with paid and open amounts.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "invoice": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "invoice"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "record_payment",
+    "description": "Record a confirmed (partial) payment. Overpayment is rejected.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "invoice": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "amountCents": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 1000000000
+        },
+        "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true,
+          "description": "Must be true and only set after the user explicitly confirmed this action."
+        },
+        "idempotencyKey": {
+          "description": "Optional key; repeating a call with the same key returns the first result.",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "invoice",
+        "amountCents",
+        "reference",
+        "confirm"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_open_items",
+    "description": "List open invoices as of a reference date, optionally only those overdue by at least N days.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "asOf": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "minDaysOverdue": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3650
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "report_receivables_by_customer",
+    "description": "Summarize open and overdue amounts per customer.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "asOf": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "export_invoice_pdf",
+    "description": "Render an invoice draft as PDF.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "invoice": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "invoice"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "export_open_items_pdf",
+    "description": "Render the open items report as PDF.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "asOf": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "minDaysOverdue": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3650
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "export_open_items_xlsx",
+    "description": "Export the open items report as a real .xlsx with numeric amounts and sums.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "asOf": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "minDaysOverdue": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3650
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "export_open_items_csv",
+    "description": "Export the open items report as CSV (Deutsch, semicolon-separated, UTF-8 with BOM for Excel).",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "asOf": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "minDaysOverdue": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3650
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "configure_payment_reminders",
+    "description": "Run a payment reminder check. Sends one reminder email per invoice that is at least 14 days overdue and not yet fully paid, but only if no reminder was sent before. Uses the optional asOf reference date (default: today).",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "asOf": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "idempotencyKey": {
+          "description": "Optional key; repeating a call with the same key returns the first result.",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "configure_payment_reminders_2",
+    "description": "Run a second payment reminder check (Mahnstufe 2). Sends one reminder email per invoice that is at least 30 days overdue and not yet fully paid, but only if a first reminder (Mahnstufe 1) was already sent. Uses the optional asOf reference date (default: today).",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "asOf": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "idempotencyKey": {
+          "description": "Optional key; repeating a call with the same key returns the first result.",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_feature_requests",
+    "description": "List feature requests and their status.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "draft_feature_request",
+    "description": "Start a feature request after the user agreed to have a missing function checked. Put everything the user already said into scope so it is not asked again. Returns missing fields; ask about them one at a time.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "request": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 4000
+        },
+        "scope": {
+          "type": "object",
+          "properties": {
+            "goal": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "trigger": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "affectedData": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 300
+              }
+            },
+            "behavior": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "exceptions": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "assumptions": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "openQuestions": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "acceptanceCriteria": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "decisions": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "topic": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "answer": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "confirmed",
+                      "proposed",
+                      "unknown"
+                    ],
+                    "description": "proposed = suggestion not yet confirmed by the user"
+                  }
+                },
+                "required": [
+                  "topic",
+                  "answer",
+                  "status"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "idempotencyKey": {
+          "description": "Optional key; repeating a call with the same key returns the first result.",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "title",
+        "request"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_feature_request",
+    "description": "Get a feature request with scope, missing fields, assessment, offers and status.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "featureRequestId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "featureRequestId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_feature_scope",
+    "description": "Update scope fields. Mark your suggestions as decisions with status \"proposed\" until the user confirms them. Changing an assessed scope invalidates open offers.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "featureRequestId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "scope": {
+          "type": "object",
+          "properties": {
+            "goal": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "trigger": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "affectedData": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 300
+              }
+            },
+            "behavior": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "exceptions": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "assumptions": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "openQuestions": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "acceptanceCriteria": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "decisions": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "topic": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "answer": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "confirmed",
+                      "proposed",
+                      "unknown"
+                    ],
+                    "description": "proposed = suggestion not yet confirmed by the user"
+                  }
+                },
+                "required": [
+                  "topic",
+                  "answer",
+                  "status"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "idempotencyKey": {
+          "description": "Optional key; repeating a call with the same key returns the first result.",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "featureRequestId",
+        "scope"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "confirm_feature_scope",
+    "description": "Confirm the summarized scope version after the user explicitly agreed. Queues ticket creation and assessment.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "featureRequestId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "scopeVersion": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true,
+          "description": "Must be true and only set after the user explicitly confirmed this action."
+        },
+        "idempotencyKey": {
+          "description": "Optional key; repeating a call with the same key returns the first result.",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "featureRequestId",
+        "scopeVersion",
+        "confirm"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "accept_dev_offer",
+    "description": "Accept the current non-binding development offer after explicit user consent. Creates a demo order and implementation job.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "featureRequestId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "offerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "offerVersion": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "confirm": {
+          "type": "boolean",
+          "const": true,
+          "description": "Must be true and only set after the user explicitly confirmed this action."
+        },
+        "idempotencyKey": {
+          "description": "Optional key; repeating a call with the same key returns the first result.",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "featureRequestId",
+        "offerId",
+        "offerVersion",
+        "confirm"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_notifications",
+    "description": "Fetch notifications after a cursor. Fetching does not mark them as read.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "cursor": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "includeAcknowledged": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "acknowledge_notifications",
+    "description": "Explicitly acknowledge notifications by cursor. Acknowledging never approves anything.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "cursors": {
+          "minItems": 1,
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        }
+      },
+      "required": [
+        "cursors"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

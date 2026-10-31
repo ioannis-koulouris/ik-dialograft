@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dialograft-config
+  namespace: dialograft
+data:
+  API_PORT: "8080"
+  MCP_PORT: "8081"
+  API_BASE_URL: http://api:8080
+  ARTIFACT_DIR: /data/artifacts
+  TENANT_ID: demo-tenant
+  DEMO_TODAY: "2026-10-30"
+  # Native Ollama and runner on the Mac, reached through OrbStack's host alias.
+  OLLAMA_URL: http://host.internal:11434
+  OLLAMA_MODEL: qwen3-coder-next:q8_0
+  RUNNER_URL: http://host.internal:8090
+  GITHUB_REPO: ioannis-koulouris/dialograft
+  SMTP_HOST: mailpit
+  SMTP_PORT: "1025"
+  DEV_RATE_EUR_PER_HOUR: "100"
+  DEV_RISK_SURCHARGE_PCT: "20"
+# Secret "dialograft-secrets" is created by scripts/k8s-secrets.sh from a local .env; never committed.

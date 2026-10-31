@@ -1,0 +1,28 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env: { MYSQL_ROOT_PASSWORD: root, MYSQL_DATABASE: dialograft_test, MYSQL_USER: ci, MYSQL_PASSWORD: ci }
+        ports: ['3306:3306']
+        options: --health-cmd="mysqladmin ping -h 127.0.0.1" --health-interval=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm test
+        env: { DIALOGRAFT_TEST_DATABASE_URL: 'mysql://ci:ci@127.0.0.1:3306/dialograft_test' }
+      - run: npm run build
+      - name: Contracts are up to date
+        run: npm run contracts && git diff --exit-code contracts/
+      - name: Docker image builds
+        run: docker build -t dialograft:ci .

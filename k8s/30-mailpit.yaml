@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: mailpit, namespace: dialograft }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: mailpit } }
+  template:
+    metadata: { labels: { app: mailpit } }
+    spec:
+      containers:
+        - name: mailpit
+          image: axllent/mailpit:v1.27
+          ports: [{ containerPort: 1025 }, { containerPort: 8025 }]
+          resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { cpu: 250m, memory: 256Mi } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: mailpit, namespace: dialograft }
+spec:
+  selector: { app: mailpit }
+  ports: [{ name: smtp, port: 1025 }, { name: web, port: 8025 }]
