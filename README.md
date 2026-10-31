@@ -8,13 +8,13 @@ Alle Daten sind Demo-Daten, keine Buchhaltungsbelege.
 
 ## Showcase
 
+**Showcase-Seite mit Video:** https://ioannis-koulouris.github.io/ik-dialograft/
+
 Live erprobt am 31.10.2026 auf einem Mac (OrbStack, Ollama, Qwen Code): drei Erweiterungen liefen jeweils vom Wunsch im Chat über Klärung, Bewertung, Angebot, Agentenlauf, Review und Merge bis zum Deployment – darunter automatische Mahnstufen und ein CSV-Export. Schutzregeln und Reviews haben dabei mehrfach eingegriffen; Details im [Prüfbericht](docs/VERIFICATION.md).
 
 | Mahnungen im lokalen Testpostfach | Einzelne Mahnung |
 |---|---|
 | ![Mailpit-Posteingang mit Zahlungserinnerungen und Mahnungen](docs/media/mailpit-inbox.png) | ![Mahnung zu Rechnung R-0002](docs/media/mailpit-message.png) |
-
-Live-Vorführung auf Anfrage über LinkedIn oder GitHub.
 
 ## Architektur
 
